@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connect to Miracle Chain</title>
+    <style>
+        body { font-family: -apple-system, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #f8f9fa; }
+        .container { text-align: center; padding: 40px; background: white; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); width: 350px; }
+        .btn-connect { background-color: #037DD6; color: white; border: none; padding: 15px 30px; font-size: 16px; font-weight: 600; border-radius: 50px; cursor: pointer; transition: 0.2s; width: 100%; margin-top: 10px; }
+        .btn-connect:hover { background-color: #0260a4; transform: translateY(-2px); }
+        #balanceDisplay { margin-top: 20px; padding: 15px; border-radius: 8px; background: #eef7ff; display: none; border: 1px solid #d0e8ff; }
+        .pnic-value { font-size: 24px; font-weight: bold; color: #037DD6; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <img src="https://miracle-rpc.calderaexplorer.xyz/assets/network_logo.png" alt="Logo" style="width: 60px; margin-bottom: 10px;" onerror="this.style.display='none'">
+    <h1>Miracle Chain</h1>
+    <p>Connect your wallet to view your PNIC balance.</p>
+    
+    <button id="actionButton" class="btn-connect" onclick="handleWallet()">Connect & Add Network</button>
+
+    <div id="balanceDisplay">
+        <div style="font-size: 14px; color: #666;">Your Balance:</div>
+        <div class="pnic-value"><span id="pnicAmount">0.00</span> PNIC</div>
+    </div>
+</div>
+
+<script>
+const CHAIN_ID_HEX = '0x4DF'; // 1247
+
+async function handleWallet() {
+    if (typeof window.ethereum === 'undefined') {
+        alert('Please install MetaMask!');
+        return;
+    }
+
+    try {
+        // 1. Request Account Access
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        const account = accounts[0];
+
+        // 2. Add/Switch Network
+        try {
+            await window.ethereum.request({
+                method: 'wallet_switchEthereumChain',
+                params: [{ chainId: CHAIN_ID_HEX }],
+            });
+        } catch (switchError) {
+            if (switchError.code === 4902) {
+                await window.ethereum.request({
+                    method: 'wallet_addEthereumChain',
+                    params: [{
+                        chainId: CHAIN_ID_HEX,
+                        chainName: 'Miracle Chain Mainnet',
+                        nativeCurrency: { name: 'PNIC', symbol: 'PNIC', decimals: 18 },
+                        rpcUrls: ['https://miracle-rpc.calderachain.xyz/http'],
+                        blockExplorerUrls: ['https://miracle-rpc.calderaexplorer.xyz/']
+                    }],
+                });
+            }
+        }
+
+        // 3. Fetch Balance
+        updateBalance(account);
+
+    } catch (error) {
+        console.error(error);
+    }
+}
+
+async function updateBalance(account) {
+    try {
+        const balanceHex = await window.ethereum.request({
+            method: 'eth_getBalance',
+            params: [account, 'latest'],
+        });
+
+        // Convert hex wei to decimal PNIC
+        const wei = parseInt(balanceHex, 16);
+        const pnic = (wei / Math.pow(10, 18)).toFixed(4);
+
+        document.getElementById('pnicAmount').innerText = pnic;
+        document.getElementById('balanceDisplay').style.display = 'block';
+        document.getElementById('actionButton').innerText = 'Refresh Balance';
+    } catch (err) {
+        console.error("Balance fetch failed", err);
+    }
+}
+</script>
+
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Miracle Chain Dashboard | By Vincent Haakmat</title>
+    <title>Miracle Chain Dashboard</title>
     <style>
         :root {
             --primary: #037DD6;
@@ -27,6 +27,14 @@
             text-align: center; padding: 40px; background: var(--card); 
             border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); 
             width: 100%; max-width: 400px; border: 1px solid #2b3139;
+            position: relative; overflow: hidden;
+        }
+
+        /* Success Banner */
+        #successBanner {
+            display: none; background: var(--success); color: white;
+            font-size: 12px; font-weight: bold; padding: 8px;
+            position: absolute; top: 0; left: 0; width: 100%;
         }
 
         .status-badge {
@@ -39,65 +47,47 @@
         .dot.connected { background: var(--success); box-shadow: 0 0 10px var(--success); }
 
         h1 { font-size: 28px; margin: 10px 0; letter-spacing: -0.5px; }
-        .gift-tag { color: var(--success); font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
 
         .balance-card {
             background: var(--secondary); padding: 20px; border-radius: 16px; 
-            margin: 20px 0; display: none;
+            margin: 20px 0; display: none; border: 1px solid #333;
         }
 
-        .pnic-value { font-size: 32px; font-weight: 700; color: var(--text); }
-        .pnic-symbol { font-size: 16px; color: var(--primary); margin-left: 4px; }
-
-        .btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+        .btn-group { display: flex; flex-direction: column; gap: 10px; }
 
         .btn-main {
             background: var(--primary); color: white; border: none; 
             padding: 16px; font-size: 16px; font-weight: 600; 
-            border-radius: 12px; cursor: pointer; transition: 0.2s;
+            border-radius: 12px; cursor: pointer; transition: 0.3s;
         }
 
-        .btn-secondary {
+        .btn-main.success-state { background: var(--success); cursor: default; }
+
+        .btn-secondary, .btn-share {
             background: transparent; color: var(--text); border: 1px solid var(--secondary); 
             padding: 12px; font-size: 14px; font-weight: 500; 
-            border-radius: 12px; cursor: pointer; transition: 0.2s; display: none;
+            border-radius: 12px; cursor: pointer; display: none; text-decoration: none;
         }
 
-        .btn-share {
-            background: var(--x-color); color: white; border: 1px solid #333;
-            padding: 12px; font-size: 14px; font-weight: 500;
-            border-radius: 12px; cursor: pointer; transition: 0.2s;
-            display: none; align-items: center; justify-content: center; gap: 8px;
-            text-decoration: none;
-        }
-
-        .author-section {
-            margin-top: 30px; padding-top: 20px; border-top: 1px solid #2b3139;
-            text-align: left;
-        }
-
-        .author-name { font-weight: 600; font-size: 14px; color: var(--text); }
-        .author-desc { font-size: 12px; color: var(--text-dim); line-height: 1.4; margin-top: 4px; }
-        
-        .btn-main:hover { filter: brightness(1.1); }
-        .btn-secondary:hover, .btn-share:hover { background: #1d2126; }
+        .author-section { margin-top: 30px; padding-top: 20px; border-top: 1px solid #2b3139; text-align: left; }
     </style>
 </head>
 <body>
 
 <div class="container">
+    <div id="successBanner">✓ MIRACLE CHAIN ACTIVE</div>
+    
     <div class="status-badge">
         <span id="statusDot" class="dot"></span>
         <span id="statusText">Wallet Disconnected</span>
     </div>
 
-    <div class="gift-tag">🎁 Community Gift</div>
     <h1>Miracle Chain</h1>
-    <p style="color: var(--text-dim); font-size: 14px;">A free tool for the Bellator/Metaterra community to easily manage $PNIC assets.</p>
+    <p style="color: var(--text-dim); font-size: 14px;">Connect and switch to Miracle Mainnet to manage $PNIC.</p>
     
     <div id="balanceCard" class="balance-card">
         <div style="font-size: 11px; color: var(--text-dim); text-transform: uppercase;">PNIC Balance</div>
-        <div class="pnic-value"><span id="pnicAmount">0.00</span><span class="pnic-symbol">PNIC</span></div>
+        <div style="font-size: 32px; font-weight: 700;"><span id="pnicAmount">0.00</span><span style="font-size: 16px; color: var(--primary); margin-left: 4px;">PNIC</span></div>
     </div>
 
     <div class="btn-group">
@@ -107,36 +97,28 @@
     </div>
 
     <div class="author-section">
-        <div class="author-name">Created by Vincent Haakmat</div>
-        <div class="author-desc">
-            Software Developer Consultant & Bellator/Metaterra enthusiast. 
-            Built this tool to help our community thrive on the Miracle Chain.
-        </div>
-        <div style="margin-top: 10px;">
-            <a href="https://github.com/vincenthaakmat" target="_blank" style="color: var(--primary); font-size: 12px; text-decoration: none;">GitHub Profile</a>
-        </div>
+        <div style="font-weight: 600; font-size: 14px;">Created by Vincent Haakmat</div>
+        <div style="font-size: 12px; color: var(--text-dim); margin-top: 4px;">Software Developer Consultant & Community Enthusiast.</div>
     </div>
 </div>
 
 <script>
 const MIRACLE_CHAIN_ID = '0x4DF'; 
-const ETH_CHAIN_ID = '0x1';
 
 async function handleInteraction() {
-    if (typeof window.ethereum === 'undefined') {
-        alert('MetaMask not detected!');
-        return;
-    }
+    if (!window.ethereum) return alert('Install MetaMask!');
 
     try {
         const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-        const account = accounts[0];
-        
-        updateUI(account);
         await switchToMiracle();
-        fetchBalance(account);
-        setupShareButton();
-
+        
+        // Final Check: Is the wallet actually on Miracle Chain now?
+        const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
+        
+        if (currentChainId.toLowerCase() === MIRACLE_CHAIN_ID.toLowerCase()) {
+            showSuccess(accounts[0]);
+            fetchBalance(accounts[0]);
+        }
     } catch (error) {
         console.error(error);
     }
@@ -164,22 +146,22 @@ async function switchToMiracle() {
     }
 }
 
-async function switchToEthereum() {
-    try {
-        await window.ethereum.request({
-            method: 'wallet_switchEthereumChain',
-            params: [{ chainId: ETH_CHAIN_ID }],
-        });
-    } catch (err) {
-        console.error(err);
-    }
+function showSuccess(account) {
+    document.getElementById('successBanner').style.display = 'block';
+    document.getElementById('statusDot').classList.add('connected');
+    document.getElementById('statusText').innerText = `Connected: ${account.substring(0,6)}...`;
+    
+    const mainBtn = document.getElementById('mainBtn');
+    mainBtn.innerText = 'Connected to Miracle ✓';
+    mainBtn.classList.add('success-state');
+    
+    document.getElementById('switchEthBtn').style.display = 'block';
+    document.getElementById('shareBtn').style.display = 'flex';
+    setupShareButton();
 }
 
 async function fetchBalance(account) {
-    const balanceHex = await window.ethereum.request({
-        method: 'eth_getBalance',
-        params: [account, 'latest'],
-    });
+    const balanceHex = await window.ethereum.request({ method: 'eth_getBalance', params: [account, 'latest'] });
     const pnic = (parseInt(balanceHex, 16) / 1e18).toFixed(4);
     document.getElementById('pnicAmount').innerText = pnic;
     document.getElementById('balanceCard').style.display = 'block';
@@ -187,17 +169,13 @@ async function fetchBalance(account) {
 
 function setupShareButton() {
     const shareBtn = document.getElementById('shareBtn');
-    const text = encodeURIComponent("I'm using the Miracle Chain tool by Vincent Haakmat! ⚡ Add the network and check $PNIC here:");
-    const url = encodeURIComponent(window.location.href);
-    shareBtn.href = `https://twitter.com/intent/tweet?text=${text}&url=${url}`;
-    shareBtn.style.display = 'flex';
+    const text = encodeURIComponent("I've successfully added the Miracle Chain! ⚡ Check your $PNIC balance here:");
+    shareBtn.href = `https://twitter.com/intent/tweet?text=${text}&url=${encodeURIComponent(window.location.href)}`;
 }
 
-function updateUI(account) {
-    document.getElementById('statusDot').classList.add('connected');
-    document.getElementById('statusText').innerText = `Connected: ${account.substring(0,6)}...${account.substring(38)}`;
-    document.getElementById('mainBtn').innerText = 'Refresh Balance';
-    document.getElementById('switchEthBtn').style.display = 'block';
+async function switchToEthereum() {
+    await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0x1' }] });
+    location.reload(); // Reload to reset UI state
 }
 </script>
 

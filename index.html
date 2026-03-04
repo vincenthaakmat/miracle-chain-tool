@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Miracle Chain Dashboard</title>
+    <title>Miracle Chain Dashboard | By Vincent Haakmat</title>
     <style>
         :root {
             --primary: #037DD6;
@@ -13,18 +13,20 @@
             --text: #ffffff;
             --text-dim: #929aa5;
             --success: #02c076;
+            --x-color: #000000;
         }
 
         body { 
             font-family: 'Inter', -apple-system, sans-serif; 
             display: flex; justify-content: center; align-items: center; 
             min-height: 100vh; margin: 0; background-color: var(--bg); color: var(--text);
+            padding: 20px;
         }
 
         .container { 
             text-align: center; padding: 40px; background: var(--card); 
             border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); 
-            width: 100%; max-width: 380px; border: 1px solid #2b3139;
+            width: 100%; max-width: 400px; border: 1px solid #2b3139;
         }
 
         .status-badge {
@@ -37,17 +39,17 @@
         .dot.connected { background: var(--success); box-shadow: 0 0 10px var(--success); }
 
         h1 { font-size: 28px; margin: 10px 0; letter-spacing: -0.5px; }
-        p { color: var(--text-dim); margin-bottom: 30px; font-size: 14px; line-height: 1.6; }
+        .gift-tag { color: var(--success); font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
 
         .balance-card {
             background: var(--secondary); padding: 20px; border-radius: 16px; 
-            margin-bottom: 20px; display: none;
+            margin: 20px 0; display: none;
         }
 
         .pnic-value { font-size: 32px; font-weight: 700; color: var(--text); }
         .pnic-symbol { font-size: 16px; color: var(--primary); margin-left: 4px; }
 
-        .btn-group { display: flex; flex-direction: column; gap: 10px; }
+        .btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
 
         .btn-main {
             background: var(--primary); color: white; border: none; 
@@ -61,10 +63,24 @@
             border-radius: 12px; cursor: pointer; transition: 0.2s; display: none;
         }
 
-        .btn-main:hover { filter: brightness(1.1); }
-        .btn-secondary:hover { background: var(--secondary); }
+        .btn-share {
+            background: var(--x-color); color: white; border: 1px solid #333;
+            padding: 12px; font-size: 14px; font-weight: 500;
+            border-radius: 12px; cursor: pointer; transition: 0.2s;
+            display: none; align-items: center; justify-content: center; gap: 8px;
+            text-decoration: none;
+        }
 
-        .footer-link { margin-top: 20px; display: block; color: var(--primary); font-size: 13px; text-decoration: none; opacity: 0.8; }
+        .author-section {
+            margin-top: 30px; padding-top: 20px; border-top: 1px solid #2b3139;
+            text-align: left;
+        }
+
+        .author-name { font-weight: 600; font-size: 14px; color: var(--text); }
+        .author-desc { font-size: 12px; color: var(--text-dim); line-height: 1.4; margin-top: 4px; }
+        
+        .btn-main:hover { filter: brightness(1.1); }
+        .btn-secondary:hover, .btn-share:hover { background: #1d2126; }
     </style>
 </head>
 <body>
@@ -75,29 +91,40 @@
         <span id="statusText">Wallet Disconnected</span>
     </div>
 
+    <div class="gift-tag">🎁 Community Gift</div>
     <h1>Miracle Chain</h1>
-    <p>Connect and switch to the Miracle Mainnet to manage your $PNIC assets.</p>
+    <p style="color: var(--text-dim); font-size: 14px;">A free tool for the Bellator/Metaterra community to easily manage $PNIC assets.</p>
     
     <div id="balanceCard" class="balance-card">
-        <div style="font-size: 12px; color: var(--text-dim); text-transform: uppercase;">Current Balance</div>
+        <div style="font-size: 11px; color: var(--text-dim); text-transform: uppercase;">PNIC Balance</div>
         <div class="pnic-value"><span id="pnicAmount">0.00</span><span class="pnic-symbol">PNIC</span></div>
     </div>
 
     <div class="btn-group">
-        <button id="mainBtn" class="btn-main" onclick="handleInteraction()">Connect & Add Chain</button>
+        <button id="mainBtn" class="btn-main" onclick="handleInteraction()">Connect & Add Network</button>
         <button id="switchEthBtn" class="btn-secondary" onclick="switchToEthereum()">Switch to Ethereum</button>
+        <a id="shareBtn" class="btn-share" href="#" target="_blank">𝕏 Share on Twitter</a>
     </div>
 
-    <a href="https://miracle-rpc.calderaexplorer.xyz/" target="_blank" class="footer-link">Block Explorer</a>
+    <div class="author-section">
+        <div class="author-name">Created by Vincent Haakmat</div>
+        <div class="author-desc">
+            Software Developer Consultant & Bellator/Metaterra enthusiast. 
+            Built this tool to help our community thrive on the Miracle Chain.
+        </div>
+        <div style="margin-top: 10px;">
+            <a href="https://github.com/vincenthaakmat" target="_blank" style="color: var(--primary); font-size: 12px; text-decoration: none;">GitHub Profile</a>
+        </div>
+    </div>
 </div>
 
 <script>
 const MIRACLE_CHAIN_ID = '0x4DF'; 
-const ETH_CHAIN_ID = '0x1'; // Ethereum Mainnet
+const ETH_CHAIN_ID = '0x1';
 
 async function handleInteraction() {
     if (typeof window.ethereum === 'undefined') {
-        alert('MetaMask not found!');
+        alert('MetaMask not detected!');
         return;
     }
 
@@ -108,6 +135,7 @@ async function handleInteraction() {
         updateUI(account);
         await switchToMiracle();
         fetchBalance(account);
+        setupShareButton();
 
     } catch (error) {
         console.error(error);
@@ -142,7 +170,6 @@ async function switchToEthereum() {
             method: 'wallet_switchEthereumChain',
             params: [{ chainId: ETH_CHAIN_ID }],
         });
-        alert("Switched to Ethereum Mainnet");
     } catch (err) {
         console.error(err);
     }
@@ -156,6 +183,14 @@ async function fetchBalance(account) {
     const pnic = (parseInt(balanceHex, 16) / 1e18).toFixed(4);
     document.getElementById('pnicAmount').innerText = pnic;
     document.getElementById('balanceCard').style.display = 'block';
+}
+
+function setupShareButton() {
+    const shareBtn = document.getElementById('shareBtn');
+    const text = encodeURIComponent("I'm using the Miracle Chain tool by Vincent Haakmat! ⚡ Add the network and check $PNIC here:");
+    const url = encodeURIComponent(window.location.href);
+    shareBtn.href = `https://twitter.com/intent/tweet?text=${text}&url=${url}`;
+    shareBtn.style.display = 'flex';
 }
 
 function updateUI(account) {

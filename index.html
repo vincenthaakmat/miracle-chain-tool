@@ -57,6 +57,7 @@
             font-size: 12px; color: var(--success); font-weight: 600;
             background: rgba(2, 192, 118, 0.1); padding: 4px 8px;
             border-radius: 6px; display: inline-block; margin-bottom: 10px;
+            text-decoration: none;
         }
 
         .btn-group { display: flex; flex-direction: column; gap: 10px; }
@@ -66,6 +67,8 @@
             padding: 16px; font-size: 16px; font-weight: 600; 
             border-radius: 12px; cursor: pointer; transition: 0.3s;
         }
+
+        .price-tag:hover { opacity: 0.9; }
 
         .btn-main.success-state { background: var(--success); cursor: default; }
 
@@ -95,7 +98,7 @@
     <h1>Miracle Chain</h1>
     
     <div id="balanceCard" class="balance-card">
-        <div id="pnicPriceDisplay" class="price-tag">PNIC: Loading...</div>
+        <a id="pnicPriceDisplay" class="price-tag" href="https://coinmarketcap.com/currencies/phoenic/" target="_blank" rel="noreferrer">PNIC: Loading...</a>
         <div style="font-size: 11px; color: var(--text-dim); text-transform: uppercase; margin-top: 5px;">Your Balance</div>
         <div style="font-size: 32px; font-weight: 700; margin: 5px 0;">
             <span id="pnicAmount">0.00</span><span style="font-size: 16px; color: var(--primary); margin-left: 4px;">PNIC</span>
@@ -118,28 +121,105 @@
 <script>
 const MIRACLE_CHAIN_ID = '0x4DF'; 
 const EXPLORER_URL = 'https://miracle-rpc.calderaexplorer.xyz/address/';
-let currentPnicPrice = 0;
+const COINMARKETCAP_PAGE_URL = 'https://coinmarketcap.com/currencies/phoenic/';
+const COINMARKETCAP_PRICE_URL = 'https://api.coinmarketcap.com/data-api/v3/cryptocurrency/market-pairs/latest?slug=phoenic&start=1&limit=10&category=spot&centerType=all&sort=cmc_rank_advanced';
+const COINMARKETCAP_PROXY_URL = `https://api.allorigins.win/raw?url=${encodeURIComponent(COINMARKETCAP_PRICE_URL)}`;
+let currentPnicPrice = null;
+let ethereumProvider = null;
+
+function pickEthereumProvider() {
+    if (window.ethereum?.isMetaMask) return window.ethereum;
+
+    if (Array.isArray(window.ethereum?.providers)) {
+        const metaMaskProvider = window.ethereum.providers.find((provider) => provider?.isMetaMask);
+        if (metaMaskProvider) return metaMaskProvider;
+    }
+
+    return window.ethereum || null;
+}
+
+function getWalletErrorMessage() {
+    if (window.location.protocol === 'file:') {
+        return 'MetaMask is not available on this file URL. Open the page through a local web server or enable MetaMask extension access to file URLs in your browser extension settings.';
+    }
+
+    return 'MetaMask provider was not injected into this page. If you opened this in a VS Code preview or embedded browser, open it in Chrome or Edge instead.';
+}
+
+async function resolveEthereumProvider(timeout = 1500) {
+    const existingProvider = pickEthereumProvider();
+    if (existingProvider) {
+        ethereumProvider = existingProvider;
+        return ethereumProvider;
+    }
+
+    await new Promise((resolve) => {
+        let settled = false;
+
+        const finish = () => {
+            if (settled) return;
+            settled = true;
+            window.removeEventListener('ethereum#initialized', finish);
+            resolve();
+        };
+
+        window.addEventListener('ethereum#initialized', finish, { once: true });
+        setTimeout(finish, timeout);
+    });
+
+    ethereumProvider = pickEthereumProvider();
+    return ethereumProvider;
+}
+
+function updateUsdValue() {
+    const pnicAmount = parseFloat(document.getElementById('pnicAmount').innerText);
+
+    if (!Number.isFinite(pnicAmount) || !Number.isFinite(currentPnicPrice)) {
+        document.getElementById('usdValue').innerText = 'USD value unavailable';
+        return;
+    }
+
+    const usdValue = (pnicAmount * currentPnicPrice).toFixed(2);
+    document.getElementById('usdValue').innerText = `$${usdValue} USD`;
+}
 
 async function fetchPnicPrice() {
+    const priceDisplay = document.getElementById('pnicPriceDisplay');
+
     try {
-        // Replace with the actual API endpoint for PNIC price if available. 
-        // For now, using a placeholder or simulated price logic.
-        const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=pnic-token&vs_currencies=usd');
+        const response = await fetch(COINMARKETCAP_PROXY_URL);
+        if (!response.ok) throw new Error(`Price request failed: ${response.status}`);
+
         const data = await response.json();
-        currentPnicPrice = data['pnic-token']?.usd || 1.25; // Defaulting to 1.25 if API is pending
-        document.getElementById('pnicPriceDisplay').innerText = `PNIC: $${currentPnicPrice.toFixed(4)}`;
+        currentPnicPrice = data?.data?.marketPairs?.[0]?.price ?? null;
+
+        if (!Number.isFinite(currentPnicPrice)) {
+            throw new Error('CoinMarketCap did not return a numeric price');
+        }
+
+        priceDisplay.href = COINMARKETCAP_PAGE_URL;
+        priceDisplay.innerText = `PNIC: $${currentPnicPrice.toFixed(6)}`;
+        updateUsdValue();
     } catch (e) {
-        currentPnicPrice = 1.25; // Simulated price for community tools
-        document.getElementById('pnicPriceDisplay').innerText = `PNIC: $${currentPnicPrice.toFixed(4)}`;
+        currentPnicPrice = null;
+        priceDisplay.href = COINMARKETCAP_PAGE_URL;
+        priceDisplay.innerText = 'PNIC: View on CoinMarketCap';
+        updateUsdValue();
     }
 }
 
 async function handleInteraction() {
-    if (!window.ethereum) return alert('MetaMask not detected!');
+    const provider = await resolveEthereumProvider();
+
+    if (!provider) {
+        alert(getWalletErrorMessage());
+        return;
+    }
+
     try {
-        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        const accounts = await provider.request({ method: 'eth_requestAccounts' });
         await switchToMiracle();
-        const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
+        const currentChainId = await provider.request({ method: 'eth_chainId' });
         
         if (currentChainId.toLowerCase() === MIRACLE_CHAIN_ID.toLowerCase()) {
             showSuccess(accounts[0]);
@@ -150,11 +230,14 @@ async function handleInteraction() {
 }
 
 async function switchToMiracle() {
+    const provider = ethereumProvider || await resolveEthereumProvider();
+    if (!provider) throw new Error(getWalletErrorMessage());
+
     try {
-        await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: MIRACLE_CHAIN_ID }] });
+        await provider.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: MIRACLE_CHAIN_ID }] });
     } catch (err) {
         if (err.code === 4902) {
-            await window.ethereum.request({
+            await provider.request({
                 method: 'wallet_addEthereumChain',
                 params: [{
                     chainId: MIRACLE_CHAIN_ID,
@@ -180,20 +263,26 @@ function showSuccess(account) {
 }
 
 async function fetchBalance(account) {
-    const balanceHex = await window.ethereum.request({ method: 'eth_getBalance', params: [account, 'latest'] });
+    const provider = ethereumProvider || await resolveEthereumProvider();
+    if (!provider) throw new Error(getWalletErrorMessage());
+
+    const balanceHex = await provider.request({ method: 'eth_getBalance', params: [account, 'latest'] });
     const pnic = (parseInt(balanceHex, 16) / 1e18).toFixed(4);
     document.getElementById('pnicAmount').innerText = pnic;
     document.getElementById('balanceCard').style.display = 'block';
-    
-    // Update USD Value
-    const usdValue = (pnic * currentPnicPrice).toFixed(2);
-    document.getElementById('usdValue').innerText = `$${usdValue} USD`;
+
+    updateUsdValue();
 }
 
 async function switchToEthereum() {
-    await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0x1' }] });
+    const provider = ethereumProvider || await resolveEthereumProvider();
+    if (!provider) throw new Error(getWalletErrorMessage());
+
+    await provider.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0x1' }] });
     location.reload();
 }
+
+resolveEthereumProvider(0);
 </script>
 
 </body>

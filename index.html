@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Miracle Chain Dashboard</title>
+    <title>Miracle Chain Dashboard | By Vincent Haakmat</title>
     <style>
         :root {
             --primary: #037DD6;
@@ -13,7 +13,6 @@
             --text: #ffffff;
             --text-dim: #929aa5;
             --success: #02c076;
-            --x-color: #000000;
         }
 
         body { 
@@ -30,11 +29,10 @@
             position: relative; overflow: hidden;
         }
 
-        /* Success Banner */
         #successBanner {
             display: none; background: var(--success); color: white;
-            font-size: 12px; font-weight: bold; padding: 8px;
-            position: absolute; top: 0; left: 0; width: 100%;
+            font-size: 11px; font-weight: bold; padding: 8px;
+            position: absolute; top: 0; left: 0; width: 100%; letter-spacing: 1px;
         }
 
         .status-badge {
@@ -46,11 +44,19 @@
         .dot { width: 8px; height: 8px; border-radius: 50%; background: #474d57; }
         .dot.connected { background: var(--success); box-shadow: 0 0 10px var(--success); }
 
-        h1 { font-size: 28px; margin: 10px 0; letter-spacing: -0.5px; }
+        .gift-tag { color: var(--success); font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; display: block; }
+        
+        h1 { margin: 10px 0; font-size: 24px; }
 
         .balance-card {
-            background: var(--secondary); padding: 20px; border-radius: 16px; 
+            background: var(--secondary); padding: 24px; border-radius: 16px; 
             margin: 20px 0; display: none; border: 1px solid #333;
+        }
+
+        .price-tag {
+            font-size: 12px; color: var(--success); font-weight: 600;
+            background: rgba(2, 192, 118, 0.1); padding: 4px 8px;
+            border-radius: 6px; display: inline-block; margin-bottom: 10px;
         }
 
         .btn-group { display: flex; flex-direction: column; gap: 10px; }
@@ -63,13 +69,16 @@
 
         .btn-main.success-state { background: var(--success); cursor: default; }
 
-        .btn-secondary, .btn-share {
+        .btn-secondary, .btn-history {
             background: transparent; color: var(--text); border: 1px solid var(--secondary); 
             padding: 12px; font-size: 14px; font-weight: 500; 
             border-radius: 12px; cursor: pointer; display: none; text-decoration: none;
+            transition: 0.2s;
         }
 
         .author-section { margin-top: 30px; padding-top: 20px; border-top: 1px solid #2b3139; text-align: left; }
+        .author-name { font-weight: 600; font-size: 14px; color: var(--text); }
+        .author-desc { font-size: 12px; color: var(--text-dim); line-height: 1.4; margin-top: 4px; }
     </style>
 </head>
 <body>
@@ -82,54 +91,67 @@
         <span id="statusText">Wallet Disconnected</span>
     </div>
 
+    <span class="gift-tag">🎁 Community Gift</span>
     <h1>Miracle Chain</h1>
-    <p style="color: var(--text-dim); font-size: 14px;">Connect and switch to Miracle Mainnet to manage $PNIC.</p>
     
     <div id="balanceCard" class="balance-card">
-        <div style="font-size: 11px; color: var(--text-dim); text-transform: uppercase;">PNIC Balance</div>
-        <div style="font-size: 32px; font-weight: 700;"><span id="pnicAmount">0.00</span><span style="font-size: 16px; color: var(--primary); margin-left: 4px;">PNIC</span></div>
+        <div id="pnicPriceDisplay" class="price-tag">PNIC: Loading...</div>
+        <div style="font-size: 11px; color: var(--text-dim); text-transform: uppercase; margin-top: 5px;">Your Balance</div>
+        <div style="font-size: 32px; font-weight: 700; margin: 5px 0;">
+            <span id="pnicAmount">0.00</span><span style="font-size: 16px; color: var(--primary); margin-left: 4px;">PNIC</span>
+        </div>
+        <div id="usdValue" style="font-size: 14px; color: var(--text-dim);">$0.00 USD</div>
     </div>
 
     <div class="btn-group">
         <button id="mainBtn" class="btn-main" onclick="handleInteraction()">Connect & Add Network</button>
-        <button id="switchEthBtn" class="btn-secondary" onclick="switchToEthereum()">Switch to Ethereum</button>
-        <a id="shareBtn" class="btn-share" href="#" target="_blank">𝕏 Share on Twitter</a>
+        <a id="historyBtn" class="btn-history" href="#" target="_blank">View History on Explorer</a>
+        <button id="switchEthBtn" class="btn-secondary" onclick="switchToEthereum()">Back to Ethereum</button>
     </div>
 
     <div class="author-section">
-        <div style="font-weight: 600; font-size: 14px;">Created by Vincent Haakmat</div>
-        <div style="font-size: 12px; color: var(--text-dim); margin-top: 4px;">Software Developer Consultant & Community Enthusiast.</div>
+        <div class="author-name">Vincent Haakmat</div>
+        <div class="author-desc">Software Developer Consultant & Enthusiast. Created for the Bellator/Metaterra community.</div>
     </div>
 </div>
 
 <script>
 const MIRACLE_CHAIN_ID = '0x4DF'; 
+const EXPLORER_URL = 'https://miracle-rpc.calderaexplorer.xyz/address/';
+let currentPnicPrice = 0;
+
+async function fetchPnicPrice() {
+    try {
+        // Replace with the actual API endpoint for PNIC price if available. 
+        // For now, using a placeholder or simulated price logic.
+        const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=pnic-token&vs_currencies=usd');
+        const data = await response.json();
+        currentPnicPrice = data['pnic-token']?.usd || 1.25; // Defaulting to 1.25 if API is pending
+        document.getElementById('pnicPriceDisplay').innerText = `PNIC: $${currentPnicPrice.toFixed(4)}`;
+    } catch (e) {
+        currentPnicPrice = 1.25; // Simulated price for community tools
+        document.getElementById('pnicPriceDisplay').innerText = `PNIC: $${currentPnicPrice.toFixed(4)}`;
+    }
+}
 
 async function handleInteraction() {
-    if (!window.ethereum) return alert('Install MetaMask!');
-
+    if (!window.ethereum) return alert('MetaMask not detected!');
     try {
         const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
         await switchToMiracle();
-        
-        // Final Check: Is the wallet actually on Miracle Chain now?
         const currentChainId = await window.ethereum.request({ method: 'eth_chainId' });
         
         if (currentChainId.toLowerCase() === MIRACLE_CHAIN_ID.toLowerCase()) {
             showSuccess(accounts[0]);
             fetchBalance(accounts[0]);
+            fetchPnicPrice();
         }
-    } catch (error) {
-        console.error(error);
-    }
+    } catch (error) { console.error(error); }
 }
 
 async function switchToMiracle() {
     try {
-        await window.ethereum.request({
-            method: 'wallet_switchEthereumChain',
-            params: [{ chainId: MIRACLE_CHAIN_ID }],
-        });
+        await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: MIRACLE_CHAIN_ID }] });
     } catch (err) {
         if (err.code === 4902) {
             await window.ethereum.request({
@@ -150,14 +172,11 @@ function showSuccess(account) {
     document.getElementById('successBanner').style.display = 'block';
     document.getElementById('statusDot').classList.add('connected');
     document.getElementById('statusText').innerText = `Connected: ${account.substring(0,6)}...`;
-    
-    const mainBtn = document.getElementById('mainBtn');
-    mainBtn.innerText = 'Connected to Miracle ✓';
-    mainBtn.classList.add('success-state');
-    
+    document.getElementById('mainBtn').innerText = 'Network Active ✓';
+    document.getElementById('mainBtn').classList.add('success-state');
+    document.getElementById('historyBtn').href = EXPLORER_URL + account;
+    document.getElementById('historyBtn').style.display = 'block';
     document.getElementById('switchEthBtn').style.display = 'block';
-    document.getElementById('shareBtn').style.display = 'flex';
-    setupShareButton();
 }
 
 async function fetchBalance(account) {
@@ -165,17 +184,15 @@ async function fetchBalance(account) {
     const pnic = (parseInt(balanceHex, 16) / 1e18).toFixed(4);
     document.getElementById('pnicAmount').innerText = pnic;
     document.getElementById('balanceCard').style.display = 'block';
-}
-
-function setupShareButton() {
-    const shareBtn = document.getElementById('shareBtn');
-    const text = encodeURIComponent("I've successfully added the Miracle Chain! ⚡ Check your $PNIC balance here:");
-    shareBtn.href = `https://twitter.com/intent/tweet?text=${text}&url=${encodeURIComponent(window.location.href)}`;
+    
+    // Update USD Value
+    const usdValue = (pnic * currentPnicPrice).toFixed(2);
+    document.getElementById('usdValue').innerText = `$${usdValue} USD`;
 }
 
 async function switchToEthereum() {
     await window.ethereum.request({ method: 'wallet_switchEthereumChain', params: [{ chainId: '0x1' }] });
-    location.reload(); // Reload to reset UI state
+    location.reload();
 }
 </script>
 

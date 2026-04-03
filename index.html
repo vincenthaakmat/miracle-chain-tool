@@ -22,11 +22,29 @@
             padding: 20px;
         }
 
+        .dashboard-shell {
+            display: flex;
+            align-items: stretch;
+            gap: 24px;
+            width: 100%;
+            max-width: 980px;
+        }
+
         .container { 
             text-align: center; padding: 40px; background: var(--card); 
             border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); 
             width: 100%; max-width: 400px; border: 1px solid #2b3139;
             position: relative; overflow: hidden;
+        }
+
+        .market-panel {
+            flex: 1;
+            min-width: 320px;
+            background: linear-gradient(180deg, #131925 0%, #101521 100%);
+            border: 1px solid #283042;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.35);
+            padding: 22px;
         }
 
         #successBanner {
@@ -82,50 +100,393 @@
         .author-section { margin-top: 30px; padding-top: 20px; border-top: 1px solid #2b3139; text-align: left; }
         .author-name { font-weight: 600; font-size: 14px; color: var(--text); }
         .author-desc { font-size: 12px; color: var(--text-dim); line-height: 1.4; margin-top: 4px; }
+
+        .market-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+
+        .asset-meta {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .asset-icon {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: grid;
+            place-items: center;
+            background: linear-gradient(135deg, #ffffff 0%, #d8c7ff 100%);
+            color: #4b2678;
+            font-weight: 800;
+            font-size: 18px;
+        }
+
+        .asset-name-row {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .asset-name {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .asset-symbol {
+            font-size: 15px;
+            color: var(--text-dim);
+        }
+
+        .asset-rank,
+        .watch-chip {
+            background: #2a3143;
+            color: #c9d2e3;
+            border-radius: 10px;
+            padding: 4px 10px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .asset-subtitle {
+            font-size: 12px;
+            color: var(--text-dim);
+        }
+
+        .market-link {
+            color: inherit;
+            text-decoration: none;
+        }
+
+        .market-price-row {
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+        }
+
+        .market-price {
+            font-size: 46px;
+            line-height: 1;
+            font-weight: 800;
+            letter-spacing: -0.04em;
+        }
+
+        .stat-trend {
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .stat-trend.positive { color: var(--success); }
+        .stat-trend.negative { color: #ff5f72; }
+        .stat-trend.neutral { color: var(--text-dim); }
+
+        .market-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+        }
+
+        .stat-card {
+            background: rgba(18, 24, 38, 0.9);
+            border: 1px solid #313a4d;
+            border-radius: 14px;
+            padding: 14px 16px;
+        }
+
+        .stat-card.wide {
+            grid-column: span 2;
+        }
+
+        .stat-label {
+            color: var(--text-dim);
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+
+        .stat-value-row {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .stat-value {
+            font-size: 16px;
+            font-weight: 800;
+        }
+
+        .score-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .score-bar {
+            height: 6px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.08);
+            overflow: hidden;
+        }
+
+        .score-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #ff6274 0%, #ff4f68 100%);
+            transition: width 0.3s ease;
+        }
+
+        @media (max-width: 900px) {
+            .dashboard-shell {
+                flex-direction: column;
+                max-width: 400px;
+            }
+
+            .market-panel,
+            .container {
+                max-width: none;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container,
+            .market-panel {
+                padding: 22px;
+            }
+
+            .market-price {
+                font-size: 38px;
+            }
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div id="successBanner">✓ MIRACLE CHAIN ACTIVE</div>
-    
-    <div class="status-badge">
-        <span id="statusDot" class="dot"></span>
-        <span id="statusText">Wallet Disconnected</span>
-    </div>
-
-    <span class="gift-tag">🎁 Community Gift</span>
-    <h1>Miracle Chain</h1>
-    
-    <div id="balanceCard" class="balance-card">
-        <a id="pnicPriceDisplay" class="price-tag" href="https://coinmarketcap.com/currencies/phoenic/" target="_blank" rel="noreferrer">PNIC: Loading...</a>
-        <div style="font-size: 11px; color: var(--text-dim); text-transform: uppercase; margin-top: 5px;">Your Balance</div>
-        <div style="font-size: 32px; font-weight: 700; margin: 5px 0;">
-            <span id="pnicAmount">0.00</span><span style="font-size: 16px; color: var(--primary); margin-left: 4px;">PNIC</span>
+<div class="dashboard-shell">
+    <div class="container">
+        <div id="successBanner">✓ MIRACLE CHAIN ACTIVE</div>
+        
+        <div class="status-badge">
+            <span id="statusDot" class="dot"></span>
+            <span id="statusText">Wallet Disconnected</span>
         </div>
-        <div id="usdValue" style="font-size: 14px; color: var(--text-dim);">$0.00 USD</div>
+
+        <span class="gift-tag">🎁 Community Gift</span>
+        <h1>Miracle Chain</h1>
+        
+        <div id="balanceCard" class="balance-card">
+            <a id="pnicPriceDisplay" class="price-tag" href="https://coinmarketcap.com/currencies/phoenic/" target="_blank" rel="noreferrer">PNIC: Loading...</a>
+            <div style="font-size: 11px; color: var(--text-dim); text-transform: uppercase; margin-top: 5px;">Your Balance</div>
+            <div style="font-size: 32px; font-weight: 700; margin: 5px 0;">
+                <span id="pnicAmount">0.00</span><span style="font-size: 16px; color: var(--primary); margin-left: 4px;">PNIC</span>
+            </div>
+            <div id="usdValue" style="font-size: 14px; color: var(--text-dim);">$0.00 USD</div>
+        </div>
+
+        <div class="btn-group">
+            <button id="mainBtn" class="btn-main" onclick="handleInteraction()">Connect & Add Network</button>
+            <a id="historyBtn" class="btn-history" href="#" target="_blank">View History on Explorer</a>
+            <button id="switchEthBtn" class="btn-secondary" onclick="switchToEthereum()">Back to Ethereum</button>
+        </div>
+
+        <div class="author-section">
+            <div class="author-name">Vincent Haakmat</div>
+            <div class="author-desc">Software Developer Consultant & Enthusiast. Created for the Bellator/Metaterra community.</div>
+        </div>
     </div>
 
-    <div class="btn-group">
-        <button id="mainBtn" class="btn-main" onclick="handleInteraction()">Connect & Add Network</button>
-        <a id="historyBtn" class="btn-history" href="#" target="_blank">View History on Explorer</a>
-        <button id="switchEthBtn" class="btn-secondary" onclick="switchToEthereum()">Back to Ethereum</button>
-    </div>
+    <aside class="market-panel">
+        <a class="market-link" href="https://coinmarketcap.com/currencies/phoenic/" target="_blank" rel="noreferrer">
+            <div class="market-header">
+                <div class="asset-meta">
+                    <div class="asset-icon">P</div>
+                    <div>
+                        <div class="asset-name-row">
+                            <span id="assetName" class="asset-name">Phoenic</span>
+                            <span id="assetSymbol" class="asset-symbol">PNIC</span>
+                            <span id="assetRank" class="asset-rank">#--</span>
+                        </div>
+                        <div class="asset-subtitle">Live market snapshot</div>
+                    </div>
+                </div>
+                <div id="watchCount" class="watch-chip">--</div>
+            </div>
+        </a>
 
-    <div class="author-section">
-        <div class="author-name">Vincent Haakmat</div>
-        <div class="author-desc">Software Developer Consultant & Enthusiast. Created for the Bellator/Metaterra community.</div>
-    </div>
+        <div class="market-price-row">
+            <div id="marketPrice" class="market-price">$--</div>
+            <div id="priceChangeYear" class="stat-trend neutral">--</div>
+        </div>
+
+        <div class="market-grid">
+            <div class="stat-card wide">
+                <div class="stat-label">Market cap</div>
+                <div class="stat-value-row">
+                    <div id="marketCapValue" class="stat-value">--</div>
+                    <div id="marketCapChange" class="stat-trend neutral">--</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-label">Volume (24h)</div>
+                <div class="stat-value-row">
+                    <div id="volume24hValue" class="stat-value">--</div>
+                    <div id="volume24hChange" class="stat-trend neutral">--</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-label">Vol/Mkt Cap (24h)</div>
+                <div class="stat-value-row">
+                    <div id="volumeMarketCapRatio" class="stat-value">--</div>
+                </div>
+            </div>
+
+            <div class="stat-card wide">
+                <div class="stat-label">FDV</div>
+                <div class="stat-value-row">
+                    <div id="fdvValue" class="stat-value">--</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-label">Total supply</div>
+                <div class="stat-value-row">
+                    <div id="totalSupplyValue" class="stat-value">--</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-label">Max. supply</div>
+                <div class="stat-value-row">
+                    <div id="maxSupplyValue" class="stat-value">--</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-label">Circulating supply</div>
+                <div class="stat-value-row">
+                    <div id="circulatingSupplyValue" class="stat-value">--</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-label">Watchlist</div>
+                <div class="stat-value-row">
+                    <div id="watchlistValue" class="stat-value">--</div>
+                </div>
+            </div>
+
+            <div class="stat-card wide">
+                <div class="score-row">
+                    <div class="stat-label" style="margin-bottom: 0;">Profile score</div>
+                    <div id="profileScoreValue" class="stat-value" style="color: #ff6274;">--</div>
+                </div>
+                <div class="score-bar">
+                    <div id="profileScoreBar" class="score-fill"></div>
+                </div>
+            </div>
+        </div>
+    </aside>
 </div>
 
 <script>
 const MIRACLE_CHAIN_ID = '0x4DF'; 
 const EXPLORER_URL = 'https://miracle-rpc.calderaexplorer.xyz/address/';
 const COINMARKETCAP_PAGE_URL = 'https://coinmarketcap.com/currencies/phoenic/';
-const COINMARKETCAP_PRICE_URL = 'https://api.coinmarketcap.com/data-api/v3/cryptocurrency/market-pairs/latest?slug=phoenic&start=1&limit=10&category=spot&centerType=all&sort=cmc_rank_advanced';
-const COINMARKETCAP_PROXY_URL = `https://api.allorigins.win/raw?url=${encodeURIComponent(COINMARKETCAP_PRICE_URL)}`;
+const COINMARKETCAP_DETAIL_URL = 'https://api.coinmarketcap.com/data-api/v3/cryptocurrency/detail?id=31094';
+const COINMARKETCAP_PROXY_URL = `https://api.allorigins.win/raw?url=${encodeURIComponent(COINMARKETCAP_DETAIL_URL)}`;
 let currentPnicPrice = null;
 let ethereumProvider = null;
+
+function formatUsd(value, decimals = 2) {
+    if (!Number.isFinite(value)) return '--';
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals,
+    }).format(value);
+}
+
+function formatCompactUsd(value) {
+    if (!Number.isFinite(value)) return '--';
+    return new Intl.NumberFormat('en-US', {
+        style: 'currency',
+        currency: 'USD',
+        notation: 'compact',
+        maximumFractionDigits: 2,
+    }).format(value);
+}
+
+function formatCompactNumber(value, decimals = 2) {
+    if (!Number.isFinite(value)) return '--';
+    return new Intl.NumberFormat('en-US', {
+        notation: 'compact',
+        maximumFractionDigits: decimals,
+    }).format(value);
+}
+
+function formatTokenAmount(value) {
+    if (!Number.isFinite(value)) return '--';
+    return `${formatCompactNumber(value)} PNIC`;
+}
+
+function formatPercent(value, decimals = 2) {
+    if (!Number.isFinite(value)) return '--';
+    return `${value >= 0 ? '▲' : '▼'} ${Math.abs(value).toFixed(decimals)}%`;
+}
+
+function setTrendText(elementId, value, decimals = 2) {
+    const element = document.getElementById(elementId);
+
+    if (!Number.isFinite(value)) {
+        element.className = 'stat-trend neutral';
+        element.innerText = '--';
+        return;
+    }
+
+    element.className = `stat-trend ${value >= 0 ? 'positive' : 'negative'}`;
+    element.innerText = formatPercent(value, decimals);
+}
+
+function updateMarketPanel(marketData) {
+    const statistics = marketData?.statistics;
+    if (!statistics) return;
+
+    const watchCount = Number(marketData.watchCount);
+    const profileScore = marketData.profileCompletionScore?.percentage ?? null;
+
+    document.getElementById('assetName').innerText = marketData.name || 'Phoenic';
+    document.getElementById('assetSymbol').innerText = marketData.symbol || 'PNIC';
+    document.getElementById('assetRank').innerText = `#${statistics.rank ?? '--'}`;
+    document.getElementById('watchCount').innerText = Number.isFinite(watchCount) ? formatCompactNumber(watchCount, 1) : '--';
+    document.getElementById('watchlistValue').innerText = Number.isFinite(watchCount) ? formatCompactNumber(watchCount, 2) : '--';
+    document.getElementById('marketPrice').innerText = formatUsd(statistics.price, 6);
+    document.getElementById('marketCapValue').innerText = formatCompactUsd(statistics.marketCap);
+    document.getElementById('volume24hValue').innerText = formatCompactUsd(statistics.volume24h);
+    document.getElementById('volumeMarketCapRatio').innerText = Number.isFinite(statistics.turnover) ? `${(statistics.turnover * 100).toFixed(1)}%` : '--';
+    document.getElementById('fdvValue').innerText = formatCompactUsd(statistics.fullyDilutedMarketCap);
+    document.getElementById('totalSupplyValue').innerText = formatTokenAmount(statistics.totalSupply);
+    document.getElementById('maxSupplyValue').innerText = formatTokenAmount(statistics.maxSupply);
+    document.getElementById('circulatingSupplyValue').innerText = formatTokenAmount(statistics.circulatingSupply);
+    document.getElementById('profileScoreValue').innerText = Number.isFinite(profileScore) ? `${Math.round(profileScore)}%` : '--';
+    document.getElementById('profileScoreBar').style.width = Number.isFinite(profileScore) ? `${profileScore}%` : '0%';
+
+    setTrendText('priceChangeYear', statistics.priceChangePercentage1y, 2);
+    setTrendText('marketCapChange', statistics.marketCapChangePercentage24h, 2);
+    setTrendText('volume24hChange', marketData.volumeChangePercentage24h, 2);
+}
 
 function pickEthereumProvider() {
     if (window.ethereum?.isMetaMask) return window.ethereum;
@@ -183,7 +544,7 @@ function updateUsdValue() {
     document.getElementById('usdValue').innerText = `$${usdValue} USD`;
 }
 
-async function fetchPnicPrice() {
+async function fetchPnicMarketData() {
     const priceDisplay = document.getElementById('pnicPriceDisplay');
 
     try {
@@ -191,7 +552,8 @@ async function fetchPnicPrice() {
         if (!response.ok) throw new Error(`Price request failed: ${response.status}`);
 
         const data = await response.json();
-        currentPnicPrice = data?.data?.marketPairs?.[0]?.price ?? null;
+        const marketData = data?.data;
+        currentPnicPrice = marketData?.statistics?.price ?? null;
 
         if (!Number.isFinite(currentPnicPrice)) {
             throw new Error('CoinMarketCap did not return a numeric price');
@@ -199,6 +561,7 @@ async function fetchPnicPrice() {
 
         priceDisplay.href = COINMARKETCAP_PAGE_URL;
         priceDisplay.innerText = `PNIC: $${currentPnicPrice.toFixed(6)}`;
+        updateMarketPanel(marketData);
         updateUsdValue();
     } catch (e) {
         currentPnicPrice = null;
@@ -224,7 +587,7 @@ async function handleInteraction() {
         if (currentChainId.toLowerCase() === MIRACLE_CHAIN_ID.toLowerCase()) {
             showSuccess(accounts[0]);
             fetchBalance(accounts[0]);
-            fetchPnicPrice();
+            fetchPnicMarketData();
         }
     } catch (error) { console.error(error); }
 }
@@ -283,6 +646,7 @@ async function switchToEthereum() {
 }
 
 resolveEthereumProvider(0);
+fetchPnicMarketData();
 </script>
 
 </body>
